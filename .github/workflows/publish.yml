@@ -1,0 +1,43 @@
+name: Build and Publish to GitHub npm Registry
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - publish
+
+jobs:
+  build:
+    if: ${{ github.event.pull_request.merged == true }} # Ensure the job runs only if the PR was merged
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # Ensure the NPM_TOKEN is available in the environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build package
+        run: pnpm build # Use this if you have a build step, otherwise remove it
+
+      - name: Publish to GitHub npm Registry
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # Ensure the NPM_TOKEN is available in the environment
+        run: pnpm publish --no-git-checks --publish-branch publish
+
+      - name: Push tags
+        run: git push --tags
