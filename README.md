@@ -1,3 +1,3 @@
-# @klink/hello
+# @nuttyday/hello
 
 GH NPM Registry testing package.
